@@ -25,7 +25,7 @@ class LLGRSTests(unittest.TestCase):
         self.assertEqual(self.system.assess(self.evidence, claim, "self_modify", False).decision, Decision.BLOCK)
 
     def test_validated_authorized_action_proceeds(self):
-        claim = Claim("x", validation=ValidationStatus.VALIDATED)
+        claim = Claim("safe", evidence_ids=["e1"], validation=ValidationStatus.VALIDATED)
         self.assertEqual(self.system.assess(self.evidence, claim, "safe_action", True).decision, Decision.PROCEED)
 
     def test_provenance_witness(self):

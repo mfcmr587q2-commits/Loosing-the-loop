@@ -57,8 +57,11 @@ class LosingTheLoop:
         self.state.conflicts = max(0, len(claims) - 1)
         self.state.anomaly = self.state.conflicts > 0 or any(e.confidence < 0.5 for e in authenticated)
 
-        if requested_action == "self_modify" and "no_unauthorized_self_modification" in self.invariants:
-            self.state.invariant_violation = requested_action not in self.authorized_actions
+        self.state.invariant_violation = (
+            requested_action == "self_modify"
+            and "no_unauthorized_self_modification" in self.invariants
+            and requested_action not in self.authorized_actions
+        )
 
         if self.state.invariant_violation:
             return self._block("protected invariant violation")
