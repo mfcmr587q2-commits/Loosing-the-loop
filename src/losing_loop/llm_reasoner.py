@@ -3,10 +3,9 @@
 The adapter is deliberately isolated from the safety kernel. The model proposes a
 structured claim; it cannot authorize or execute an action.
 
-The default configuration targets the large Qwen3 235B MoE model through any
-OpenAI-compatible endpoint (for example vLLM or DashScope). Runtime details are
-provided by environment variables so the same code can use a local GPU server or
-a hosted API without changing the safety kernel.
+The default configuration targets Qwen3-4B through Ollama's OpenAI-compatible
+endpoint. Runtime details remain configurable through environment variables so
+the same safety kernel can later use a larger local or hosted Qwen model.
 """
 from __future__ import annotations
 
@@ -28,19 +27,12 @@ counterevidence_needed, validation_plan, proposed_action.
 If evidence conflicts or provenance is incomplete, say so explicitly.
 """
 
-DEFAULT_QWEN_MODEL = os.getenv(
-    "LLM_MODEL",
-    "Qwen/Qwen3-235B-A22B-Instruct-2507",
-)
-DEFAULT_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:8000/v1")
+DEFAULT_QWEN_MODEL = os.getenv("LLM_MODEL", "qwen3:4b")
+DEFAULT_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434/v1")
 
 
 class LocalLLMReasoner:
-    """OpenAI-compatible reasoner adapter.
-
-    Despite the historical class name, this works with local or hosted endpoints.
-    The endpoint, API key, and model are supplied independently of the safety core.
-    """
+    """OpenAI-compatible reasoner adapter for local or hosted endpoints."""
 
     def __init__(
         self,
@@ -54,7 +46,7 @@ class LocalLLMReasoner:
         self.model = model or DEFAULT_QWEN_MODEL
         self.client = OpenAI(
             base_url=self.base_url,
-            api_key=api_key or os.getenv("LLM_API_KEY", "local"),
+            api_key=api_key or os.getenv("LLM_API_KEY", "ollama"),
         )
 
     def reason(self, grounded_state: dict[str, Any]) -> dict[str, Any]:
