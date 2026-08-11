@@ -29,6 +29,7 @@ If evidence conflicts or provenance is incomplete, say so explicitly.
 
 DEFAULT_QWEN_MODEL = os.getenv("LLM_MODEL", "qwen3:4b")
 DEFAULT_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434/v1")
+DEFAULT_TIMEOUT_SECONDS = float(os.getenv("LLM_TIMEOUT_SECONDS", "900"))
 
 
 class LocalLLMReasoner:
@@ -39,14 +40,17 @@ class LocalLLMReasoner:
         base_url: str | None = None,
         model: str | None = None,
         api_key: str | None = None,
+        timeout_seconds: float | None = None,
     ):
         if OpenAI is None:
             raise RuntimeError("Install optional dependency: pip install openai")
         self.base_url = base_url or DEFAULT_BASE_URL
         self.model = model or DEFAULT_QWEN_MODEL
+        self.timeout_seconds = timeout_seconds or DEFAULT_TIMEOUT_SECONDS
         self.client = OpenAI(
             base_url=self.base_url,
             api_key=api_key or os.getenv("LLM_API_KEY", "ollama"),
+            timeout=self.timeout_seconds,
         )
 
     def reason(self, grounded_state: dict[str, Any]) -> dict[str, Any]:
