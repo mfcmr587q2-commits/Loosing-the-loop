@@ -17,12 +17,12 @@ class AdversarialLoopTests(unittest.TestCase):
         ]
         self.assertEqual(s.assess(evidence, "external_action"), Decision.BREATH)
 
-    def test_unknown_validation_is_not_proceed(self):
+    def test_high_confidence_external_action_proceeds_in_minimal_prototype(self):
         s = LosingTheLoop()
         result = s.assess([Evidence("safe", "trusted", 0.99)], "external_action")
         self.assertEqual(result, Decision.PROCEED)
-        # The prototype's current policy treats ordinary validated evidence as sufficient.
-        # A future Validator layer must change this to require independent validation.
+        # The minimal prototype treats authenticated high-confidence evidence as sufficient.
+        # The grounded kernel separately requires independent validation and authorization.
 
     def test_self_authorization_fails(self):
         s = LosingTheLoop()

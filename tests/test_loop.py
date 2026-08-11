@@ -35,6 +35,12 @@ class LosingTheLoopTests(unittest.TestCase):
         system = LosingTheLoop()
         self.assertFalse(system.authorize("self_modify", independent_reviewer=False))
 
+    def test_blocked_self_modification_does_not_poison_later_actions(self):
+        system = LosingTheLoop()
+        evidence = [Evidence("safe", "trusted-source", 0.99)]
+        self.assertEqual(system.assess(evidence, "self_modify"), Decision.BLOCK)
+        self.assertEqual(system.assess(evidence, "external_action"), Decision.PROCEED)
+
 
 if __name__ == "__main__":
     unittest.main()
