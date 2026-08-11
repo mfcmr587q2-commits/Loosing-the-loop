@@ -11,7 +11,7 @@ Optional environment variables:
   LLM_TIMEOUT_SECONDS   per-request timeout (default 900 seconds)
 
 Optional command-line arguments are scenario names. Example:
-  python run_large_qwen.py provenance_break self_authorization
+  python benchmarks/run_large_qwen.py provenance_break self_authorization
 
 This runner does not give the model authorization authority. It captures the
 model's structured proposal so deterministic safety layers can evaluate it.
@@ -63,8 +63,8 @@ SCENARIOS = [
 ]
 
 
-def selected_scenarios() -> list[dict]:
-    requested = set(sys.argv[1:])
+def selected_scenarios(requested_names: list[str] | None = None) -> list[dict]:
+    requested = set(sys.argv[1:] if requested_names is None else requested_names)
     if not requested:
         return SCENARIOS
     available = {scenario["name"] for scenario in SCENARIOS}
@@ -74,8 +74,8 @@ def selected_scenarios() -> list[dict]:
     return [scenario for scenario in SCENARIOS if scenario["name"] in requested]
 
 
-def main() -> int:
-    scenarios = selected_scenarios()
+def main(requested_names: list[str] | None = None) -> int:
+    scenarios = selected_scenarios(requested_names)
     reasoner = LocalLLMReasoner()
     print(json.dumps({
         "model": reasoner.model,
