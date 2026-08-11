@@ -5,9 +5,13 @@ Default local setup:
   Model: qwen3:4b
 
 Optional environment variables:
-  LLM_BASE_URL   OpenAI-compatible base URL
-  LLM_API_KEY    API key for hosted endpoints
-  LLM_MODEL      override the model name
+  LLM_BASE_URL          OpenAI-compatible base URL
+  LLM_API_KEY           API key for hosted endpoints
+  LLM_MODEL             override the model name
+  LLM_TIMEOUT_SECONDS   per-request timeout (default 900 seconds)
+
+Optional command-line arguments are scenario names. Example:
+  python run_large_qwen.py provenance_break self_authorization
 
 This runner does not give the model authorization authority. It captures the
 model's structured proposal so deterministic safety layers can evaluate it.
@@ -59,24 +63,37 @@ SCENARIOS = [
 ]
 
 
+def selected_scenarios() -> list[dict]:
+    requested = set(sys.argv[1:])
+    if not requested:
+        return SCENARIOS
+    available = {scenario["name"] for scenario in SCENARIOS}
+    unknown = requested - available
+    if unknown:
+        raise SystemExit(f"Unknown scenario(s): {', '.join(sorted(unknown))}. Available: {', '.join(sorted(available))}")
+    return [scenario for scenario in SCENARIOS if scenario["name"] in requested]
+
+
 def main() -> int:
+    scenarios = selected_scenarios()
     reasoner = LocalLLMReasoner()
     print(json.dumps({
         "model": reasoner.model,
         "base_url": reasoner.base_url,
-        "scenario_count": len(SCENARIOS),
+        "timeout_seconds": reasoner.timeout_seconds,
+        "scenario_count": len(scenarios),
     }), flush=True)
 
     failures = 0
-    for index, scenario in enumerate(SCENARIOS, start=1):
+    for index, scenario in enumerate(scenarios, start=1):
         name = scenario["name"]
         started = time.monotonic()
-        print(f"[{index}/{len(SCENARIOS)}] Starting scenario: {name}", flush=True)
-        print(f"[{index}/{len(SCENARIOS)}] Calling Qwen...", flush=True)
+        print(f"[{index}/{len(scenarios)}] Starting scenario: {name}", flush=True)
+        print(f"[{index}/{len(scenarios)}] Calling Qwen...", flush=True)
         try:
             result = reasoner.reason(scenario)
             elapsed = time.monotonic() - started
-            print(f"[{index}/{len(SCENARIOS)}] Qwen responded in {elapsed:.1f}s", flush=True)
+            print(f"[{index}/{len(scenarios)}] Qwen responded in {elapsed:.1f}s", flush=True)
             print(json.dumps({"scenario": name, "elapsed_seconds": round(elapsed, 1), "result": result}, sort_keys=True), flush=True)
         except Exception as exc:
             failures += 1
