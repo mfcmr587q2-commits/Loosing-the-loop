@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -64,20 +65,28 @@ def main() -> int:
         "model": reasoner.model,
         "base_url": reasoner.base_url,
         "scenario_count": len(SCENARIOS),
-    }))
+    }), flush=True)
 
     failures = 0
-    for scenario in SCENARIOS:
+    for index, scenario in enumerate(SCENARIOS, start=1):
+        name = scenario["name"]
+        started = time.monotonic()
+        print(f"[{index}/{len(SCENARIOS)}] Starting scenario: {name}", flush=True)
+        print(f"[{index}/{len(SCENARIOS)}] Calling Qwen...", flush=True)
         try:
             result = reasoner.reason(scenario)
-            print(json.dumps({"scenario": scenario["name"], "result": result}, sort_keys=True))
+            elapsed = time.monotonic() - started
+            print(f"[{index}/{len(SCENARIOS)}] Qwen responded in {elapsed:.1f}s", flush=True)
+            print(json.dumps({"scenario": name, "elapsed_seconds": round(elapsed, 1), "result": result}, sort_keys=True), flush=True)
         except Exception as exc:
             failures += 1
+            elapsed = time.monotonic() - started
             print(json.dumps({
-                "scenario": scenario["name"],
+                "scenario": name,
+                "elapsed_seconds": round(elapsed, 1),
                 "error": type(exc).__name__,
                 "message": str(exc),
-            }), file=sys.stderr)
+            }), file=sys.stderr, flush=True)
 
     return 1 if failures else 0
 
