@@ -1,18 +1,20 @@
-"""Run the Losing-the-Loop benchmark against a large Qwen endpoint.
+"""Run the Losing-the-Loop real-model benchmark against Qwen3-4B.
 
-Required environment variables for hosted use:
+Default local setup:
+  Ollama endpoint: http://localhost:11434/v1
+  Model: qwen3:4b
+
+Optional environment variables:
   LLM_BASE_URL   OpenAI-compatible base URL
-  LLM_API_KEY    API key for that endpoint
-Optional:
-  LLM_MODEL      defaults to Qwen/Qwen3-235B-A22B-Instruct-2507
+  LLM_API_KEY    API key for hosted endpoints
+  LLM_MODEL      override the model name
 
 This runner does not give the model authorization authority. It captures the
-model's structured proposal so the deterministic safety layers can evaluate it.
+model's structured proposal so deterministic safety layers can evaluate it.
 """
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -69,7 +71,7 @@ def main() -> int:
         try:
             result = reasoner.reason(scenario)
             print(json.dumps({"scenario": scenario["name"], "result": result}, sort_keys=True))
-        except Exception as exc:  # surface endpoint/config/runtime failures clearly
+        except Exception as exc:
             failures += 1
             print(json.dumps({
                 "scenario": scenario["name"],
