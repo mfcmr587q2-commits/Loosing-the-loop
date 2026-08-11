@@ -7,11 +7,11 @@ from src.losing_loop.witness_memory import WitnessMemory
 
 class GroundedLoopTests(unittest.TestCase):
     def setUp(self):
-        self.ev=Evidence(id="e1", claim="safe", source="test", confidence=.99, authenticated=True, type=EvidenceType.OBSERVATION)
+        self.ev=Evidence(id="e1", claim="safe", content="observed safe", source="test", confidence=.99, authenticated=True, type=EvidenceType.OBSERVATION)
         self.claim=Claim(hypothesis="safe", evidence_ids=["e1"], validation=ValidationStatus.VALIDATED)
 
     def test_counterevidence_triggers_challenge(self):
-        bad=Evidence(id="e2", claim="unsafe", source="test", confidence=.99, authenticated=True, type=EvidenceType.COUNTEREVIDENCE)
+        bad=Evidence(id="e2", claim="unsafe", content="observed unsafe", source="test", confidence=.99, authenticated=True, type=EvidenceType.COUNTEREVIDENCE)
         self.assertTrue(Challenger().challenge(self.claim,[self.ev,bad]))
 
     def test_validator_rejects_mismatch(self):
