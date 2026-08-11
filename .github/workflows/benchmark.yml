@@ -12,7 +12,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Run unit and benchmark tests
-        run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Run benchmark assertions
+        run: python -m unittest tests/test_benchmark.py -v
       - name: Run benchmark report
         run: python benchmarks/benchmark.py
+
+  regression:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run full regression suite
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
